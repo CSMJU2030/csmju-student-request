@@ -1,0 +1,9 @@
+CREATE TYPE "LinkType" AS ENUM ('FORM','OFFICIAL_SYSTEM','INFORMATION','DOWNLOAD');
+CREATE TYPE "ReportStatus" AS ENUM ('NEW','REVIEWED','RESOLVED');
+CREATE TABLE "services" ("id" UUID PRIMARY KEY,"code" VARCHAR(64) NOT NULL UNIQUE,"title" VARCHAR(255) NOT NULL,"description" TEXT NOT NULL,"is_active" BOOLEAN NOT NULL DEFAULT true,"last_verified_at" TIMESTAMPTZ,"created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,"updated_at" TIMESTAMPTZ NOT NULL);
+CREATE TABLE "service_steps" ("id" UUID PRIMARY KEY,"service_id" UUID NOT NULL REFERENCES "services"("id") ON DELETE CASCADE,"step_no" INTEGER NOT NULL,"title" VARCHAR(255) NOT NULL,"description" TEXT NOT NULL,"requires_signature" BOOLEAN NOT NULL DEFAULT false,"location" VARCHAR(255),UNIQUE("service_id","step_no"));
+CREATE TABLE "service_documents" ("id" UUID PRIMARY KEY,"service_id" UUID NOT NULL REFERENCES "services"("id") ON DELETE CASCADE,"name" VARCHAR(255) NOT NULL,"description" TEXT,"is_required" BOOLEAN NOT NULL DEFAULT true);
+CREATE TABLE "service_links" ("id" UUID PRIMARY KEY,"service_id" UUID NOT NULL REFERENCES "services"("id") ON DELETE CASCADE,"title" VARCHAR(255) NOT NULL,"url" TEXT NOT NULL,"link_type" "LinkType" NOT NULL);
+CREATE TABLE "service_contacts" ("id" UUID PRIMARY KEY,"service_id" UUID NOT NULL REFERENCES "services"("id") ON DELETE CASCADE,"name" VARCHAR(255) NOT NULL,"channel" VARCHAR(100) NOT NULL,"value" VARCHAR(255) NOT NULL);
+CREATE TABLE "service_inputs" ("id" UUID PRIMARY KEY,"service_id" UUID NOT NULL REFERENCES "services"("id") ON DELETE CASCADE,"label" VARCHAR(255) NOT NULL,"description" TEXT,"is_required" BOOLEAN NOT NULL DEFAULT true);
+CREATE TABLE "information_reports" ("id" UUID PRIMARY KEY,"service_id" UUID NOT NULL REFERENCES "services"("id") ON DELETE CASCADE,"message" TEXT NOT NULL,"status" "ReportStatus" NOT NULL DEFAULT 'NEW',"created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP);

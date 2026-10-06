@@ -8,16 +8,12 @@ import {
 import { ApiError, api } from '@/lib/api';
 
 type ContactDirectory = {
-  id: string;
-  code: string;
-  personCode: string | null;
   name: string | null;
   position: string;
   location: string | null;
   phone: string | null;
   email: string | null;
   sourceUrl: string | null;
-  lastVerifiedAt: string | null;
 };
 
 type ServiceStepContact = {
@@ -293,6 +289,8 @@ export default async function ServiceDetailPage({ params }: PageProps) {
                       {step.contacts.map((contact) => {
                         const personName =
                           contact.contactDirectory?.name ?? contact.personName;
+                        const position =
+                          contact.contactDirectory?.position;
                         const location =
                           contact.contactDirectory?.location ?? contact.location;
                         const phone =
@@ -340,6 +338,12 @@ export default async function ServiceDetailPage({ params }: PageProps) {
                                 {personName}
                               </p>
                             )
+                          )}
+
+                          {position && (
+                            <p className="mt-1 text-body-sm text-on-surface-variant">
+                              ตำแหน่ง/หน่วยงาน: {position}
+                            </p>
                           )}
 
                           {contact.guidance && (

@@ -12,11 +12,12 @@ const services=[
 ];
 const contactDirectory=[
   {
-    code:'CS_CURRICULUM_CHAIR',
-    personCode:'attawit',
-    name:'อ. อรรถวิท ชังคมานนท์',
-    position:'ประธานอาจารย์ผู้รับผิดชอบหลักสูตรวิทยาการคอมพิวเตอร์',
+    code:'CS_DEPARTMENT_OFFICE',
+    position:'สำนักงานสาขาวิชาวิทยาการคอมพิวเตอร์ (งานหลักสูตร)',
     location:'ชั้น 6 อาคาร 60 ปี คณะวิทยาศาสตร์ มหาวิทยาลัยแม่โจ้',
+    phone:'053-873890-3',
+    email:'cs@mju.ac.th',
+    sourceUrl:'https://www.cs.mju.ac.th/',
     lastVerifiedAt:verified
   },
   {
@@ -95,9 +96,9 @@ const stepContactsByCode={
     ],
     [
       {
-        label:'ประธานอาจารย์ผู้รับผิดชอบหลักสูตรวิทยาการคอมพิวเตอร์',
-        contactDirectoryCode:'CS_CURRICULUM_CHAIR',
-        guidance:'ติดต่อสาขาวิชาวิทยาการคอมพิวเตอร์ คณะวิทยาศาสตร์'
+        label:'ยื่นเรื่องผ่านงานหลักสูตรของสาขา',
+        contactDirectoryCode:'CS_DEPARTMENT_OFFICE',
+        guidance:'ติดต่อสำนักงานสาขาวิชาวิทยาการคอมพิวเตอร์ ชั้น 6 อาคาร 60 ปี'
       }
     ],
     [

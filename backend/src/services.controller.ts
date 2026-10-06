@@ -117,7 +117,16 @@ export class ServicesController {
           include: {
             contacts: {
               include: {
-                contactDirectory: true,
+                contactDirectory: {
+                  select: {
+                    name: true,
+                    position: true,
+                    location: true,
+                    phone: true,
+                    email: true,
+                    sourceUrl: true,
+                  },
+                },
               },
             },
           },

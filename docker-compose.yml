@@ -27,7 +27,7 @@ services:
     ports:
       - '127.0.0.1:5434:5432'
     volumes:
-      - csmju-csmju-student-request-db-data:/var/lib/postgresql/data
+      - student-request-db-data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres -d csmju_student_request']
       interval: 5s
@@ -83,4 +83,4 @@ services:
       - '127.0.0.1:3234:3000'
 
 volumes:
-  csmju-csmju-student-request-db-data:
+  student-request-db-data:

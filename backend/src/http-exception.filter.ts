@@ -24,7 +24,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     if(typeof body==='object' && body && 'success' in body) return res.status(status).json(body);
-    const code=status===400?'VALIDATION_ERROR':status===401?'UNAUTHORIZED':status===403?'FORBIDDEN':status===404?'NOT_FOUND':status===409?'CONFLICT':status===429?'RATE_LIMITED':status===503?'SERVICE_UNAVAILABLE':'INTERNAL_ERROR';
+    const code =
+      status === 400
+        ? 'VALIDATION_ERROR'
+        : status === 401
+          ? 'UNAUTHORIZED'
+          : status === 403
+            ? 'FORBIDDEN'
+            : status === 404
+              ? 'NOT_FOUND'
+              : status === 409
+                ? 'CONFLICT'
+                : status === 429
+                  ? 'TOO_MANY_REQUESTS'
+                  : status === 503
+                    ? 'SERVICE_UNAVAILABLE'
+                    : 'INTERNAL_ERROR';
     const message=status>=500?'Internal server error':exception instanceof HttpException?exception.message:'Internal server error';
     return res.status(status).json({success:false,error:{code,message}});
   }

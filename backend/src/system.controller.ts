@@ -1,16 +1,19 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 import { AuthGuard } from './auth.guard';
 import type { CoreHubIdentity } from './auth/core-hub-identity';
 
 @Controller()
 export class SystemController {
+  constructor(private readonly config: ConfigService) {}
+
   @Get('health')
   health() {
     return {
       success: true,
       data: {
-        service: 'csmju-student-request',
+        service: this.config.getOrThrow<string>('SUBSYSTEM_ID'),
         status: 'ok',
       },
     };
@@ -19,11 +22,7 @@ export class SystemController {
   @Get('v1/me')
   @UseGuards(AuthGuard)
   me(@Req() req: Request & { user?: CoreHubIdentity }) {
-    const user = req.user;
-
-    if (!user) {
-      return;
-    }
+    const user = req.user!;
 
     return {
       success: true,

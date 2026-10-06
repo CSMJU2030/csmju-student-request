@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LinkType {
+  FORM
+  OFFICIAL_SYSTEM
+  INFORMATION
+  DOWNLOAD
+}
+
+enum ReportStatus {
+  NEW
+  REVIEWED
+  RESOLVED
+}
+
+model Service {
+  id             String              @id @default(uuid()) @db.Uuid
+  code           String              @unique @db.VarChar(64)
+  title          String              @db.VarChar(255)
+  description    String              @db.Text
+  isActive       Boolean             @default(true) @map("is_active")
+  lastVerifiedAt DateTime?           @map("last_verified_at") @db.Timestamptz(6)
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  steps          ServiceStep[]
+  documents      ServiceDocument[]
+  links          ServiceLink[]
+  contacts       ServiceContact[]
+  reports        InformationReport[]
+  inputs         ServiceInput[]
+
+  @@map("services")
+}
+
+model ServiceStep {
+  id                String               @id @default(uuid()) @db.Uuid
+  serviceId         String               @map("service_id") @db.Uuid
+  stepNo            Int                  @map("step_no")
+  title             String               @db.VarChar(255)
+  description       String               @db.Text
+  requiresSignature Boolean              @default(false) @map("requires_signature")
+  location          String?              @db.VarChar(255)
+  service           Service              @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  contacts          ServiceStepContact[]
+
+  @@unique([serviceId, stepNo])
+  @@map("service_steps")
+}
+
+model ServiceDocument {
+  id          String  @id @default(uuid()) @db.Uuid
+  serviceId   String  @map("service_id") @db.Uuid
+  name        String  @db.VarChar(255)
+  description String? @db.Text
+  isRequired  Boolean @default(true) @map("is_required")
+  service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("service_documents")
+}
+
+model ServiceLink {
+  id        String   @id @default(uuid()) @db.Uuid
+  serviceId String   @map("service_id") @db.Uuid
+  title     String   @db.VarChar(255)
+  url       String   @db.Text
+  linkType  LinkType @map("link_type")
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("service_links")
+}
+
+model ServiceContact {
+  id        String  @id @default(uuid()) @db.Uuid
+  serviceId String  @map("service_id") @db.Uuid
+  name      String  @db.VarChar(255)
+  channel   String  @db.VarChar(100)
+  value     String  @db.VarChar(255)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("service_contacts")
+}
+
+model ServiceInput {
+  id          String  @id @default(uuid()) @db.Uuid
+  serviceId   String  @map("service_id") @db.Uuid
+  label       String  @db.VarChar(255)
+  description String? @db.Text
+  isRequired  Boolean @default(true) @map("is_required")
+  service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("service_inputs")
+}
+
+model InformationReport {
+  id        String       @id @default(uuid()) @db.Uuid
+  serviceId String       @map("service_id") @db.Uuid
+  message   String       @db.Text
+  status    ReportStatus @default(NEW)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  service   Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("information_reports")
+}
+
+model ServiceStepContact {
+  id                 String            @id @default(uuid()) @db.Uuid
+  stepId             String            @map("step_id") @db.Uuid
+  label              String            @db.VarChar(255)
+  personName         String?           @map("person_name") @db.VarChar(255)
+  location           String?           @db.VarChar(255)
+  phone              String?           @db.VarChar(100)
+  email              String?           @db.VarChar(255)
+  guidance           String?           @db.Text
+  actionUrl          String?           @map("action_url") @db.Text
+  actionLabel        String?           @map("action_label") @db.VarChar(100)
+  sourceUrl          String?           @map("source_url") @db.Text
+  lastVerifiedAt     DateTime?         @map("last_verified_at") @db.Timestamptz(6)
+  contactDirectoryId String?           @map("contact_directory_id") @db.Uuid
+  step               ServiceStep       @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  contactDirectory   ContactDirectory? @relation(fields: [contactDirectoryId], references: [id], onDelete: SetNull)
+
+  @@map("service_step_contacts")
+}
+
+model ContactDirectory {
+  id             String               @id @default(uuid()) @db.Uuid
+  code           String               @unique @db.VarChar(64)
+  personCode     String?              @map("person_code") @db.VarChar(100)
+  name           String?              @db.VarChar(255)
+  position       String               @db.VarChar(255)
+  location       String?              @db.VarChar(255)
+  phone          String?              @db.VarChar(100)
+  email          String?              @db.VarChar(255)
+  sourceUrl      String?              @map("source_url") @db.Text
+  lastVerifiedAt DateTime?            @map("last_verified_at") @db.Timestamptz(6)
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  stepContacts   ServiceStepContact[]
+
+  @@map("contact_directory")
+}

@@ -1,0 +1,86 @@
+# CSMJU Student Request runs its own API and its own database.
+# It never connects to the Core Hub database - only to the Core Hub API and JWKS URL.
+#
+#   docker compose up -d db              PostgreSQL only, for `pnpm dev` (port 5434)
+#   docker compose up -d --build         db + api + web, built the way the server runs them
+#                                        -> http://localhost:3234
+#
+# The server does not use this file. There DevOps runs the same two images against
+# the shared PostgreSQL (standards docs/deployment.md); this file stands in for that
+# on your own machine. The service names are part of the contract: the web image
+# sends /api/* and /auth/* to http://api:4000.
+
+x-hardening: &hardening
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: csmju-student-request-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: csmju_student_request
+    ports:
+      - '127.0.0.1:5434:5432'
+    volumes:
+      - csmju-csmju-student-request-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d csmju_student_request']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    <<: *hardening
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: csmju-student-request-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 4000
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/csmju_student_request
+      DATABASE_POOL_MAX: 5
+      CORE_HUB_URL: ${CORE_HUB_URL:-https://csmju2030.jowave.com}
+      CORE_HUB_JWKS_URL: ${CORE_HUB_JWKS_URL:-https://csmju2030.jowave.com/api/v1/.well-known/jwks.json}
+      CORE_HUB_WEB_URL: ${CORE_HUB_WEB_URL:-https://csmju2030.jowave.com}
+      CORE_HUB_ISSUER: ${CORE_HUB_ISSUER:-core-hub}
+      CORE_HUB_AUDIENCE: ${CORE_HUB_AUDIENCE:-csmju2030}
+      SUBSYSTEM_ID: ${SUBSYSTEM_ID:-csmju-student-request}
+      SUBSYSTEM_NAME: ${SUBSYSTEM_NAME:-CSMJU Student Request}
+      TZ: Asia/Bangkok
+    tmpfs:
+      - /tmp:size=32m
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  web:
+    <<: *hardening
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: csmju-student-request-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    tmpfs:
+      - /tmp:size=32m
+      - /app/frontend/.next/cache:size=64m
+    environment:
+      CORE_HUB_WEB_URL: ${CORE_HUB_WEB_URL:-https://csmju2030.jowave.com}
+      SUBSYSTEM_ID: ${SUBSYSTEM_ID:-csmju-student-request}
+      TZ: Asia/Bangkok
+    ports:
+      - '127.0.0.1:3234:3000'
+
+volumes:
+  csmju-csmju-student-request-db-data:
